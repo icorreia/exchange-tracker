@@ -15,7 +15,7 @@ time_axis = Queue()
 value_axis = Queue()
 time_xticks = Queue()
 
-alarm = pyglet.media.load('MGS-theme.ogg')
+ALARM_LIMIT = 1.183
 
 while True:
 	p = Popen(['curl', 'https://api-fxtrade.oanda.com/v1/candles?instrument=EUR_GBP&count=1'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -39,11 +39,10 @@ while True:
 		print eur_val
 
 	# ALARMS
-	if (eur_val < 1.1900):
+	if (eur_val < ALARM_LIMIT):
+		alarm = pyglet.media.load('MGS-theme.ogg')
 		alarm.play()
 		print "ALARM: Exchange value is under the limit!"
 		# The song lasts for 3:52.
-		time.sleep(235)
-		alarm.stop()
-		alarm.clear()
+		time.sleep(230)
 	time.sleep(6)
