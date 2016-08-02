@@ -4,18 +4,14 @@ from subprocess import Popen, PIPE
 import json
 import time
 import pyglet
-import matplotlib.pyplot as plt
-from Queue import Queue
 ###########################################################
 
 lb_limit = 0.0
 ub_limit = 0.0
 
-time_axis = Queue()
-value_axis = Queue()
-time_xticks = Queue()
-
-ALARM_LIMIT = 1.183
+ALARM_LIMIT = 1.183         # The value considered low enough to bet on GBP
+HAS_REACHED_MIN = False     # To monitor if we have crossed the lower limit for the currency
+min_val = 10000             # The minimum value of GBP during the whole execution period
 
 while True:
 	p = Popen(['curl', 'https://api-fxtrade.oanda.com/v1/candles?instrument=EUR_GBP&count=1'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -39,10 +35,20 @@ while True:
 		print eur_val
 
 	# ALARMS
+	if (eur_val < min_val):
+		min_val = eur_val
+		print "Reached new minimum: %f€" % min_val
+
 	if (eur_val < ALARM_LIMIT):
+		HAS_REACHED_MIN = True
+
+	# If we have crossed the lower limit and the value seems to be growing.
+	if (HAS_REACHED_MIN and eur_val >= min_val + 0.0004):
 		alarm = pyglet.media.load('MGS-theme.ogg')
-		alarm.play()
-		print "ALARM: Exchange value is under the limit!"
-		# The song lasts for 3:52.
-		time.sleep(230)
+                alarm.play()
+                print "ALARM: Exchange value is under the limit (%f€)!" % eur_val
+                # The song lasts for 3:52.
+                time.sleep(230)
+
+
 	time.sleep(6)
